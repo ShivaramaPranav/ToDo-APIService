@@ -37,7 +37,7 @@ class ToDo(db.Model):
         db.session.commit()
     
     def delete_tasks(self):
-        tasks = Task.query.filter_by(toDoId=self.id)
+        tasks = Task.query.filter_by(toDoId=self.id).all()
         for task in tasks:
             task.delete_from_db()
     

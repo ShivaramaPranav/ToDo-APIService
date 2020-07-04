@@ -3,7 +3,7 @@ sys.path.append(".")
 from flask import Flask, request, Response
 from models.todo import ToDo
 from models.task import Task
-from werkzeug.exceptions import InternalServerError
+from werkzeug.exceptions import InternalServerError, BadRequest
 from db import db
 
 import json
@@ -53,7 +53,7 @@ def createToDo():
         return InternalServerError("Something went wrong")
 
 
-@app.route("/api/v1/todo/<toDoId>", methods=["GET", "PUT", "DELETE"])
+@app.route("/api/v1/todos/<toDoId>", methods=["GET", "PUT", "DELETE"])
 def todoItemResource(toDoId):
     if request.method == "GET":
         return getToDoItem(toDoId)
@@ -67,7 +67,7 @@ def getToDoItem(toDoId):
     try:
         toDo = ToDo.find_by_id(int(toDoId))
         if toDo is None:
-            return Response("No ToDo matches id {}".format(toDo.id), status=201)
+            return BadRequest("No ToDo matches id {}".format(toDoId))
         return json.dumps(toDo.json())
     except Exception:
         return InternalServerError("Something went wrong!")
@@ -77,13 +77,12 @@ def updateToDoItem(toDoId):
     try:
         toDo = ToDo.find_by_id(toDoId)
         if toDo is None:
-            return Response("No ToDo matches id {}".format(toDo.id), status=201)
+            return BadRequest("No ToDo matches id {}".format(toDoId))
         body = request.json
         toDo.name = body.get("name")
         toDo.description = body.get("description")
         toDo.save_to_db()
-        if toDo is not None:
-            toDo.delete_tasks()
+        toDo.delete_tasks()
         tasks = body.get("tasks")
         for task in tasks:
             tsk = Task(name=task.get("name"), toDoId=toDo.id, description=task.get("description"))
@@ -97,7 +96,7 @@ def deleteToDoItem(toDoId):
     try:
         toDo = ToDo.find_by_id(int(toDoId))
         if toDo is None:
-            return Response("No ToDo matches id {}".format(toDo.id), status=201)
+            return BadRequest("No ToDo matches id {}".format(toDoId))
         toDo.delete_from_db()
         return Response("ToDo with id {} successfully deleted".format(toDo.id), status=201)
     except Exception:
