@@ -1,8 +1,11 @@
 import sys
 sys.path.append(".")
-from flask import Flask, request, Response
+from flask import Flask, request, Response, render_template
 from models.todo import ToDo
 from models.task import Task
+from models.player import Player
+from models.match import Match
+from models.playerMatch import PlayerMatch
 from werkzeug.exceptions import InternalServerError, BadRequest
 from db import db
 
@@ -12,6 +15,9 @@ app = Flask(__name__)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:password@db:5432/flaskJWT'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 
+TEAMS_ORDER = ["csk", "dc", "kxip", "kkr", "mi", "rr", "rcb", "srh"]
+
+db.init_app(app)
 
 @app.route("/")
 def home():
@@ -102,6 +108,74 @@ def deleteToDoItem(toDoId):
     except Exception:
         return InternalServerError("Something went wrong!")
 
+#-------- fantasy league
+
+@app.route("/api/v1/league/player", methods=["GET","POST"])
+def playerResource():
+    if request.method == 'POST':
+        return createPlayer()
+    else:
+        return getPlayers()
+
+@app.route("/api/v1/league/player/<id>", methods=["GET"])
+def playerMatchHistory(id):
+    player = Player.find_by_id(id)
+    playerMatches = PlayerMatch.find_by_player(id);
+    lis = []
+    for playerMatch in playerMatches:
+        match = Match.find_by_id(playerMatch.matchId)
+        lis.append((playerMatch,match))
+    return render_template("playerMatchHistory.html", playerMatches=lis, player=player)
+
+@app.route("/api/v1/league/order", methods=["GET"])
+def getOrder():
+    players = Player.find_all()
+    return json.dumps(TEAMS_ORDER)
+
+@app.route("/api/v1/league/home", methods=["GET"])
+def leagueHome():
+    players = Player.find_all()
+    return render_template("home.html", players=players, order=TEAMS_ORDER)
+
+def createPlayer():
+    try:
+        body = request.form
+        name = body.get("name")
+        priorities = body.get("priority")
+        priorities = priorities.split(",")
+        pl = Player(name, *priorities)
+        pl.save_to_db()
+        return Response("Created player with id {}".format(pl.id), status=201)
+    except Exception:
+        return InternalServerError("Something went wrong")
+
+def getPlayers():
+    try:
+        players = Player.find_all()
+        players = sorted(player, key=lambda x: x.score)
+        resp = [player.json() for player in players]
+        return json.dumps(resp)
+    except Exception:
+        return InternalServerError("Something went wrong!")
+
+@app.route("/api/v1/league/match", methods=["POST"])
+def registerMatch():
+    try:
+        form = request.form
+        winner = form.get("winner")
+        loser = form.get("loser")
+        mt = Match(winner, loser)
+        mt.save_to_db()
+        players = Player.find_all()
+        for player in players:
+            points = getattr(player, winner)
+            player.score += points
+            pm = PlayerMatch(mt.id, player.id, points)
+            pm.save_to_db()
+            player.save_to_db()
+        return Response("Scores updated for all player", status=201)
+    except Exception:
+        return InternalServerError("Something went wrong, winner key could be non existent")
 
 @app.before_first_request
 def create_tables():
