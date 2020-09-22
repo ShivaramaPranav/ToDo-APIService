@@ -17,6 +17,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 
 TEAMS_ORDER = ["csk", "dc", "kxip", "kkr", "mi", "rr", "rcb", "srh"]
 
+db.init_app(app)
 
 @app.route("/")
 def home():
@@ -138,7 +139,6 @@ def leagueHome():
 
 def createPlayer():
     try:
-        import pdb;pdb.set_trace()
         body = request.form
         name = body.get("name")
         priorities = body.get("priority")

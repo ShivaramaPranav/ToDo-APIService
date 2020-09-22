@@ -1,0 +1,59 @@
+<!doctype html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<title>Fantasy IPL</title>
+<body>
+	<h3>League standings</h3>
+	<p><strong><a href="/api/v1/league/order">Order of teams</a></strong></p>
+	<table>
+	    <th>Name</th>
+    	<th>Score</th>
+	  	{% for player in players %}
+    	<tr>
+      		<td><a href="{{ '/api/v1/league/player/%s'%player.id}}">{{player.name}}</a></td>
+      		<td><a href="/api/v1/league/order">{{player.score}}</a></td>
+    	</tr>
+  	  	{% endfor %}
+	</table>
+	<br><br>
+	winning team <textarea id="winner" name="winner" rows="1" cols="3"></textarea>
+	<br>
+	losing team<textarea id="loser" name="loser" rows="1" cols="3"></textarea>
+	<br>
+	<button id="match">Register match</button>
+
+	<br><br>
+	Player name <textarea id="playerName" name="playerName" rows="1" cols="15"></textarea>
+	<br>
+	{{order}}
+	<br>
+	priority order<textarea id="priorityOrder" name="priorityOrder" rows="1" cols="15"></textarea>
+	<br>
+	<button id="player">Register player</button>
+</body>
+<script type="text/javascript">
+	$("#match").click(function(){
+	var winner = $.trim($("#winner").val());
+	var loser = $.trim($("#loser").val());
+	$.post("/api/v1/league/match",
+    {
+      winner: winner,
+      loser: loser
+    },
+    function(data,status){
+      alert("Data: " + data + "\nStatus: " + status);
+    });
+	});
+
+	$("#player").click(function(){
+	var name = $.trim($("#playerName").val());
+	var rankings = $.trim($("#priorityOrder").val());
+	$.post("/api/v1/league/player",
+    {
+      name: name,
+      priority: rankings
+    },
+    function(data,status){
+      alert("Data: " + data + "\nStatus: " + status);
+    });
+	});
+</script>

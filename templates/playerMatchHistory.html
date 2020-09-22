@@ -1,0 +1,20 @@
+<!doctype html>
+<title>Fantasy IPL</title>
+<header>
+	<h1>Player Match History</h1>
+</header>
+<body>
+	<h3>Player: {{player.name}}</h3>
+	<h3>Total Score: {{player.score}}</h3>
+	<!-- <p><strong><a href="/api/v1/league/order">Order of teams</a></strong></p> -->
+	<table>
+	    <th>Match</th>
+    	<th>Score</th>
+    	{% for playerMatch in playerMatches %}
+    	<tr>
+    		<td>{{playerMatch[1].winner}} vs {{playerMatch[1].loser}}</td>
+      		<td>{{playerMatch[0].earnedPoints}}</td>
+    	</tr>
+  	  	{% endfor %}
+	</table>
+</body>
