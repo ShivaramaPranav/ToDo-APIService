@@ -16,6 +16,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 
 TEAMS_ORDER = ["csk", "dc", "kxip", "kkr", "mi", "rr", "rcb", "srh"]
+PASSKEY = "VIT2017"
 
 db.init_app(app)
 
@@ -135,14 +136,21 @@ def getOrder():
 @app.route("/api/v1/league/home", methods=["GET"])
 def leagueHome():
     players = Player.find_all()
-    return render_template("home.html", players=players, order=TEAMS_ORDER)
+    sortedPlayers = sorted(players, key=lambda x: x.score, reverse=True)
+    return render_template("home.html", players=sortedPlayers, order=TEAMS_ORDER)
 
 def createPlayer():
     try:
         body = request.form
         name = body.get("name")
         priorities = body.get("priority")
+        password = body.get("pass")
+        if password != PASSKEY:
+            return Response("Entered password is incorrect", status=201)
         priorities = priorities.split(",")
+        existingPlayer = Player.find_by_name(name)
+        if existingPlayer:
+            return Response("Player already exists, not creating" , status=201)
         pl = Player(name, *priorities)
         pl.save_to_db()
         return Response("Created player with id {}".format(pl.id), status=201)
@@ -153,6 +161,7 @@ def getPlayers():
     try:
         players = Player.find_all()
         players = sorted(player, key=lambda x: x.score)
+        password = body.get("pass")
         resp = [player.json() for player in players]
         return json.dumps(resp)
     except Exception:
@@ -164,6 +173,9 @@ def registerMatch():
         form = request.form
         winner = form.get("winner")
         loser = form.get("loser")
+        password = form.get("pass")
+        if password != PASSKEY: 
+            return Response("Entered password is incorrect", status=201)
         mt = Match(winner, loser)
         mt.save_to_db()
         players = Player.find_all()
@@ -175,7 +187,42 @@ def registerMatch():
             player.save_to_db()
         return Response("Scores updated for all player", status=201)
     except Exception:
-        return InternalServerError("Something went wrong, winner key could be non existent")
+        return InternalServerError("Something went wrong, winner key might be non existent")
+
+@app.route("/api/v1/league/player/<id>/score/<score>", methods=["GET"])
+def updatePlayerScore(id, score):
+    try:
+        player = Player.find_by_id(id)
+        player.score = score
+        player.save_to_db()
+        return Response("Score updated for player "+player.name+" new score is:"+str(player.score), status=201)
+    except Exception:
+        return InternalServerError("Something went wrong, player key might be non existent")
+
+@app.route("/api/v1/league/player/<id>/delete", methods=["GET"])
+def deletePlayer(id, score):
+    try:
+        player = Player.find_by_id(id)
+        player.delete_from_db()
+        return Response("Player with name "+player.name+" deleted")
+    except Exception as e:
+        raise
+
+@app.route("/api/v1/league/match/<id>/delete", methods=["GET"])
+def deleteMatch(id):
+    try:
+        match = Match.find_by_id(id)
+        winner = match.winner
+        for pl in Player.find_all():
+            plmt = PlayerMatch.find_by_player_and_match(pl.id, match.id);
+            if plmt:
+                plmt.delete_from_db()
+            pl.score -= getattr(pl, match.winner)
+        match.delete_from_db()
+        return Response("Match with id "+str(match.id)+" deleted")
+    except Exception as e:
+        raise
+
 
 @app.before_first_request
 def create_tables():
