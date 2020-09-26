@@ -1,12 +1,26 @@
 <!doctype html>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <title>Fantasy IPL</title>
+<header class="w3-display-container w3-content w3-wide" style="max-width:1600px;min-width:400px" id="home">
+  <img class="w3-image" src="/static/Logo.jpg" alt="IPL Logo" width="1600" height="150">
+  <div class="w3-display-right w3-padding-large w3-opacity">
+  <h1 class="w3-jumbo w3-text-deep-orange" style="text-shadow:1px 1px 0 #444">IPL Fantasy League</h1>
+  </div>
+</header>
 <body>
+	<div class="w3-container w3-light-blue">
+	
 	<h3>League standings</h3>
-	<p><strong><a href="/api/v1/league/order">Order of teams</a></strong></p>
-	<table>
-	    <th>Name</th>
-    	<th>Score</th>
+	<!-- <p><strong><a href="/api/v1/league/order">Order of teams</a></strong></p> -->
+	<div class="w3-col l5 m12">
+	<table class="w3-table-all w3-hoverable">
+   	 	<thead>
+		    <tr class="w3-indigo">
+				<th>Name</th>
+    	    	<th>Score</th>
+      		</tr>
+	    </thead>
 	  	{% for player in players %}
     	<tr>
       		<td><a href="{{ '/api/v1/league/player/%s'%player.id}}">{{player.name}}</a></td>
@@ -14,30 +28,68 @@
     	</tr>
   	  	{% endfor %}
 	</table>
+	</div>
 	<br><br>
-	winning team <textarea id="winner" name="winner" rows="1" cols="3"></textarea>
-	<br>
-	losing team<textarea id="loser" name="loser" rows="1" cols="3"></textarea>
-	<br>
-	<button id="match">Register match</button>
+	<br><br>
+	<br><br>
+	<br><br>
+	<hr>
+
+
+	<div class="w3-col l5 m12 w3-container w3-margin">
+	    <div class="w3-padding w3-indigo">
+	    	<h2>Match</h2>
+	    </div>
+		<form class="w3-container w3-white">
+			<br>
+			<label class="w3-text-indigo"> <b>Winning team</b></label>
+			<textarea id="winner" name="winner" rows="1" cols="3" class="w3-input w3-border w3-light-grey"></textarea>
+			<label class="w3-text-indigo"> <b>losing team</b></label>
+			<textarea id="loser" name="loser" rows="1" cols="3" class="w3-input w3-border w3-light-grey"></textarea>
+			<label class="w3-text-indigo"> <b>Password</b></label>	
+			<textarea id="pass1" name="pass1" rows="1" cols="3" class="w3-input w3-border w3-light-grey"></textarea>
+			<br>
+			<button id="match" class="w3-btn w3-indigo">Register</button>
+			<br><br>
+		</form>
+		<br>
+	</div>
+
+	<div class="w3-col l5 m12 w3-container w3-margin">
+	    <div class="w3-padding w3-indigo">
+	    	<h2>Player</h2>
+	    </div>
+		<form class="w3-container w3-white">
+			<br>
+			<label class="w3-text-indigo"> <b>Player name</b></label>
+			<textarea id="playerName" name="playerName" rows="1" cols="15" class="w3-input w3-border w3-light-grey"></textarea>
+			<label class="w3-text-indigo"> <b>Priority order</b></label>
+			<textarea id="priorityOrder" name="priorityOrder" rows="1" cols="15" class="w3-input w3-border w3-light-grey"></textarea>
+			<label class="w3-text-indigo"> <b>Password</b></label>	
+			<textarea id="pass2" name="pass2" rows="1" cols="3" class="w3-input w3-border w3-light-grey"></textarea>
+			<br>
+			<button id="player" class="w3-btn w3-indigo">Register</button>
+			<br><br>
+		</form>
+	</div>
 
 	<br><br>
-	Player name <textarea id="playerName" name="playerName" rows="1" cols="15"></textarea>
-	<br>
-	{{order}}
-	<br>
-	priority order<textarea id="priorityOrder" name="priorityOrder" rows="1" cols="15"></textarea>
-	<br>
-	<button id="player">Register player</button>
+	<br><br>
+	<br><br>
+	<br><br>
+
+</div>
 </body>
 <script type="text/javascript">
 	$("#match").click(function(){
 	var winner = $.trim($("#winner").val());
 	var loser = $.trim($("#loser").val());
+	var password1 = $.trim($("#pass1").val());
 	$.post("/api/v1/league/match",
     {
       winner: winner,
-      loser: loser
+      loser: loser,
+      pass: password1
     },
     function(data,status){
       alert("Data: " + data + "\nStatus: " + status);
@@ -47,10 +99,12 @@
 	$("#player").click(function(){
 	var name = $.trim($("#playerName").val());
 	var rankings = $.trim($("#priorityOrder").val());
+	var password2 = $.trim($("#pass2").val());
 	$.post("/api/v1/league/player",
     {
       name: name,
-      priority: rankings
+      priority: rankings,
+      pass: password2
     },
     function(data,status){
       alert("Data: " + data + "\nStatus: " + status);
