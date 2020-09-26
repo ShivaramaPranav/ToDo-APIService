@@ -25,6 +25,10 @@ class PlayerMatch(db.Model):
         return cls.query.filter_by(playerId=playerId).all()
 
     @classmethod
+    def find_by_player_and_match(cls, playerId, matchId):
+        return cls.query.filter_by(playerId=playerId).filter_by(matchId=matchId).first()
+
+    @classmethod
     def find_all(cls):
         return cls.query.all()
 
