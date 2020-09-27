@@ -200,7 +200,7 @@ def updatePlayerScore(id, score):
         return InternalServerError("Something went wrong, player key might be non existent")
 
 @app.route("/api/v1/league/player/<id>/delete", methods=["GET"])
-def deletePlayer(id, score):
+def deletePlayer(id):
     try:
         player = Player.find_by_id(id)
         player.delete_from_db()
