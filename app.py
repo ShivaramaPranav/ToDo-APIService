@@ -15,13 +15,12 @@ import json
 app = Flask(__name__)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:password@db:5432/flaskJWT'
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
-app.config.from_object(os.environ['APP_SETTINGS'])
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 
 TEAMS_ORDER = ["csk", "dc", "kxip", "kkr", "mi", "rr", "rcb", "srh"]
 PASSKEY = "VIT2017"
 
-# db.init_app(app)
+db.init_app(app)
 
 @app.route("/")
 def home():
@@ -227,11 +226,11 @@ def deleteMatch(id):
         raise
 
 
-# @app.before_first_request
-# def create_tables():
-#     db.create_all()
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
 
 if __name__ == '__main__':
-#     db.init_app(app)
+    db.init_app(app)
     app.run(host='0.0.0.0', port=5000)
