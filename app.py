@@ -24,7 +24,8 @@ db.init_app(app)
 
 @app.route("/")
 def home():
-    return "ToDo API Server up and running!"
+    return render_template("visvaHome.html")
+
 
 
 @app.route("/api/v1/todos", methods=["POST", "GET"])
